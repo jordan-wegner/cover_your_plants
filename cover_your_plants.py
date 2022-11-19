@@ -48,3 +48,6 @@ def cover_your_plants(city="carrollton"):
     # sending the message 
     yag = yagmail.SMTP('nbadailyprediction@gmail.com', password = "bjqphhhhbbpzobns")
     yag.send(to=['3256173035@mms.att.net','5127863033@mms.att.net'],contents=message)
+
+cover_your_plants()
+

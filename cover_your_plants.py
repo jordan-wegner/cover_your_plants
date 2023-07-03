@@ -1,53 +1,71 @@
-def cover_your_plants(city="carrollton"):
+def cover_your_plants():
     # imports 
     
     # for scraping the weather 
-    from bs4 import BeautifulSoup
+    import pandas as pd
     import requests
-    # for sending the text 
-    import yagmail
+    from bs4 import BeautifulSoup
     
-    # scraping the weather 
+    # for sending the email 
+    import yagmail 
     
-    # create url
-    url = "https://www.google.com/search?q="+"weather"+city
-    # requests instance
-    html = requests.get(url).content
-    # getting raw data
-    soup = BeautifulSoup(html, 'html.parser')
-    # getting the temperature 
-    # get the temperature
-    temp = soup.find('div', attrs={'class': 'BNeawe iBp4i AP7Wnd'}).text
-    # this contains time and sky description
-    string = soup.find('div', attrs={'class': 'BNeawe tAd8D AP7Wnd'}).text
-    # format the data
-    data = string.split('\n')
-    time = data[0]
-    sky = data[1]
-    # list having all div tags having particular class name
-    listdiv = soup.findAll('div', attrs={'class': 'BNeawe s3v9rd AP7Wnd'})
-    # particular list with required data
-    strd = listdiv[5].text
-    # formatting the string
-    pos1 = strd.find('Wind')
-    other_data = strd[pos1:]
-    hilo = strd[strd.find('High'):strd.find('Wind')-3]
+    # for today's date 
+    from datetime import datetime 
     
-    # setting the recommendation
-    low = int(hilo[-3:-1])
-    if low <=32:
+    # scraping the weather  
+    url = "https://forecast.weather.gov/MapClick.php?lat=33.004190&lon=-96.906520"
+    
+    soup = BeautifulSoup(requests.get(url).content, "html.parser")
+    for f in soup.select("li.forecast-tombstone"):
+        print(f.select_one(".period-name").get_text(strip=True, separator=" "))
+        print(f.select_one(".short-desc").get_text(strip=True, separator=" "))
+        print(f.select_one(".temp").text)
+        print("-" * 80)
+
+    tls = []
+    for f in soup.select("li.forecast-tombstone"):
+        a = f.select_one(".period-name").get_text(strip=True, separator=" ")
+        b = f.select_one(".short-desc").get_text(strip=True, separator=" ")
+        c = f.select_one(".temp").text
+        tl = [a,b,c]
+        tls.append(tl)
+    TL1 = pd.DataFrame(tls)
+    TL = TL1.copy()
+    TL.columns = ['Time','DESCR','TEMP']
+    tl_temp_splits = TL['TEMP'].str.split(': ')
+    hl = [i[0] for i in tl_temp_splits]
+    t = [i[1] for i in tl_temp_splits]
+    TL['HIGH_LOW'] = hl
+    TL['DEG'] = t
+    TL['DEG_INT'] = [int(i.split(" ")[0]) for i in t]
+    night_low = TL[(TL['Time']=='Tonight')&(TL['HIGH_LOW']=='Low')]['DEG_INT'].values[0]
+    
+    if night_low <=32:
         recommendation = "Cover the plants!"
-    elif low >32:
+    elif night_low >32:
         recommendation = "No need to cover the plants tonight."
     else:
         recommendation = "Something is wrong! Check your code!"
     
     # formatting the message 
-    message = "Current Temperature is {}. Current Time: {}. Sky Description: {}. {}. {}. {}".format(temp,time,sky,other_data,hilo,recommendation)
+    ls = []
+    for i in range(0,len(TL1)):
+        x = TL1.iloc[i,:].values[0]
+        y = TL1.iloc[i,:].values[1]
+        z = TL1.iloc[i,:].values[2]
+        l1 = "{} will be {} with {}".format(x,y,z)
+        ls.append(l1)
+    m_all = '\n'.join(ls)
+    
+    # writing everything to log 
+    td = datetime.today().strftime('%Y%m%d')
+    file_id = "weather_report.txt"
+    with open(file=file_id,mode='w') as f: 
+        f.write(m_all)
     
     # sending the message 
     yag = yagmail.SMTP('nbadailyprediction@gmail.com', password = "bjqphhhhbbpzobns")
-    yag.send(to=['3256173035@mms.att.net','5127863033@mms.att.net'],contents=message)
-
+    yag.send(to=['3256173035@mms.att.net','5127863033@mms.att.net'],contents=recommendation,attachments=file_id)
+    #yag.send(to=['3256173035@mms.att.net'],contents=recommendation,attachments=file_id)
+    
 cover_your_plants()
-

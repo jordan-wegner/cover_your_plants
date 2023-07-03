@@ -9,6 +9,9 @@ def cover_your_plants():
     # for sending the email 
     import yagmail 
     
+    # for today's date 
+    from datetime import datetime 
+    
     # scraping the weather  
     url = "https://forecast.weather.gov/MapClick.php?lat=33.004190&lon=-96.906520"
     
@@ -52,11 +55,17 @@ def cover_your_plants():
         z = TL1.iloc[i,:].values[2]
         l1 = "{} will be {} with {}".format(x,y,z)
         ls.append(l1)
-    m = ls[1] + ".  " + recommendation
+    m_all = '\n'.join(ls)
+    
+    # writing everything to log 
+    td = datetime.today().strftime('%Y%m%d')
+    file_id = "{}_weather_report.txt".format(td)
+    with open(file=file_id,mode='w') as f: 
+        f.write(m_all)
     
     # sending the message 
     yag = yagmail.SMTP('nbadailyprediction@gmail.com', password = "bjqphhhhbbpzobns")
-    yag.send(to=['3256173035@mms.att.net','5127863033@mms.att.net'],contents=m)
-    #yag.send(to=['3256173035@mms.att.net'],contents=m)
-
+    yag.send(to=['3256173035@mms.att.net','5127863033@mms.att.net'],contents=recommendation,attachments=file_id)
+    #yag.send(to=['3256173035@mms.att.net'],contents=recommendation,attachments=file_id)
+    
 cover_your_plants()

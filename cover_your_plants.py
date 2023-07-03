@@ -59,7 +59,7 @@ def cover_your_plants():
     
     # writing everything to log 
     td = datetime.today().strftime('%Y%m%d')
-    file_id = "{}_weather_report.txt".format(td)
+    file_id = "weather_report.txt"
     with open(file=file_id,mode='w') as f: 
         f.write(m_all)
     

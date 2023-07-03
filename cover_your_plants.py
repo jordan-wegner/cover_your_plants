@@ -1,4 +1,4 @@
-def cover_your_plants(city="carrollton"):
+def cover_your_plants():
     # imports 
     
     # for scraping the weather 
@@ -6,8 +6,18 @@ def cover_your_plants(city="carrollton"):
     import requests
     from bs4 import BeautifulSoup
     
+    # for sending the email 
+    import yagmail 
+    
     # scraping the weather  
     url = "https://forecast.weather.gov/MapClick.php?lat=33.004190&lon=-96.906520"
+    
+    soup = BeautifulSoup(requests.get(url).content, "html.parser")
+    for f in soup.select("li.forecast-tombstone"):
+        print(f.select_one(".period-name").get_text(strip=True, separator=" "))
+        print(f.select_one(".short-desc").get_text(strip=True, separator=" "))
+        print(f.select_one(".temp").text)
+        print("-" * 80)
 
     tls = []
     for f in soup.select("li.forecast-tombstone"):
@@ -46,5 +56,7 @@ def cover_your_plants(city="carrollton"):
     
     # sending the message 
     yag = yagmail.SMTP('nbadailyprediction@gmail.com', password = "bjqphhhhbbpzobns")
-    #yag.send(to=['3256173035@mms.att.net','5127863033@mms.att.net'],contents=message)
-    yag.send(to=['3256173035@mms.att.net'],contents=m)
+    yag.send(to=['3256173035@mms.att.net','5127863033@mms.att.net'],contents=m)
+    #yag.send(to=['3256173035@mms.att.net'],contents=m)
+
+cover_your_plants()
